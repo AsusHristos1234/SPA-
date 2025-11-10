@@ -14,6 +14,7 @@ export default function ProductsPage() {
     setSearchQuery,
     setFilters 
   } = useProductStore()
+    const favoritesCount = useProductStore((state) => state.favorites?.length ?? 0)
   
   const [currentPage, setCurrentPage] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
@@ -86,9 +87,17 @@ export default function ProductsPage() {
                   <button className="rounded-full border border-white/20 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.2em] text-white">
                     Все товары
                   </button>
-                  <button className="rounded-full border border-white/10 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.2em] text-white/60 transition-colors hover:border-white/30 hover:text-white">
+                  <Link
+                    href="/favorites"
+                    className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.2em] text-white/60 transition-colors hover:border-white/30 hover:text-white"
+                  >
                     Избранное
-                  </button>
+                  {favoritesCount > 0 && (
+                      <span className="rounded-full bg-gradient-to-r from-rose-500 to-orange-400 px-2 py-0.5 text-[0.65rem] font-semibold text-slate-950">
+                        {favoritesCount}
+                      </span>
+                    )}
+                  </Link>
                   <button className="rounded-full border border-white/10 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.2em] text-white/60 transition-colors hover:border-white/30 hover:text-white">
                     Новинки
                   </button>

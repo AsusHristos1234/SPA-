@@ -96,11 +96,9 @@ export default function ProductCard({ product }: ProductCardProps) {
           </button>
         </div>
 
-        <div className="absolute top-4 left-4">
-          <div className="flex items-center gap-1 rounded-full border border-white/20 bg-slate-900/70 px-3 py-1 text-sm font-medium text-white/80 backdrop-blur">
-            <Star size={14} className="text-amber-400" />
-            <span>{(Math.random() * 2 + 3).toFixed(1)}</span>
-          </div>
+         <div className="flex items-center gap-2 border-t border-white/10 bg-slate-950/70 px-4 py-3 text-sm font-medium text-white/80 backdrop-blur">
+          <Star size={16} className="text-amber-400" />
+          <span className="tracking-wide">{(Math.random() * 2 + 3).toFixed(1)} / 5.0</span>
         </div>
       </div>
 

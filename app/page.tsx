@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ArrowRight, CheckCircle2, Sparkles } from 'lucide-react'
 
+
 const highlights = [
   {
     title: '24/7 Проверка продавцов',
@@ -85,25 +86,35 @@ export default function Home() {
               <div className="grid gap-6">
                 {categories.map((item) => (
                   <div
+                    
                     key={item.title}
-                    className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-950/70 p-6 transition-transform hover:-translate-y-1 hover:border-cyan-400/40"
+                    className="group relative overflow-hidden rounded-3xl border border-white/25 bg-slate-950/90 p-6 text-white shadow-[0_20px_35px_-25px_rgba(14,165,233,0.55)] transition-all duration-300 hover:-translate-y-1.5 hover:scale-[1.03] hover:border-cyan-300/70 hover:bg-slate-900/95 hover:shadow-[0_30px_45px_-20px_rgba(56,189,248,0.65)]"
                   >
-                    <div className={`absolute inset-y-0 right-[-25%] w-2/3 bg-gradient-to-l ${item.accent}`} />
+                    <div
+                      className={`absolute inset-y-[-40%] right-[-30%] w-3/4 skew-x-[-10deg] bg-gradient-to-l opacity-50 transition-opacity duration-300 group-hover:opacity-80 ${item.accent}`}
+                    />
                     <div className="relative">
-                      <span className="text-xs font-semibold uppercase tracking-[0.3em] text-white/40">Категория</span>
-                      <h3 className="mt-3 text-2xl font-semibold text-white">{item.title}</h3>
-                      <p className="mt-2 text-sm text-slate-300">{item.count}</p>
+                      <span className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.32em] text-cyan-100/70 transition-colors duration-300 group-hover:text-cyan-100">
+                        Категория
+                        <span className="h-1 w-1 rounded-full bg-cyan-200/80" />
+                      </span>
+                      <h3 className="mt-3 text-2xl font-semibold text-white transition-colors duration-300 group-hover:text-white">
+                        {item.title}
+                      </h3>
+                      <p className="mt-2 text-sm font-medium text-slate-100/90 transition-colors duration-300 group-hover:text-white">
+                        {item.count}
+                      </p>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="rounded-3xl border border-cyan-400/30 bg-gradient-to-br from-cyan-500/10 via-blue-500/10 to-transparent p-6 text-sm text-slate-200">
-                <p className="font-semibold text-cyan-200/90">Маркетинговый акселератор</p>
-                <p className="mt-2 text-slate-300/90">
+              <div className="rounded-3xl border border-cyan-400/40 bg-gradient-to-br from-cyan-500/15 via-blue-500/10 to-transparent p-6 text-sm text-slate-200">
+                <p className="font-semibold text-cyan-200/95">Маркетинговый акселератор</p>
+                <p className="mt-2 text-slate-200/95">
                   Выгружайте карточки на маркетплейсы, запускайте рекламу и синхронизируйте остатки. Мы гарантируем соответствие требованиям закона «О маркетплейсах».
                 </p>
-                <div className="mt-4 inline-flex items-center gap-2 text-cyan-200/80">
+                <div className="mt-4 inline-flex items-center gap-2 text-cyan-200/90">
                   Узнать условия
                   <ArrowRight className="h-4 w-4" />
                 </div>
@@ -126,11 +137,15 @@ export default function Home() {
           <div className="grid w-full gap-4 sm:grid-cols-2 lg:max-w-xl">
             {[{ value: '98%', label: 'Покупателей возвращаются' }, { value: '12 мин', label: 'Среднее время до первой продажи' }, { value: '6 стран', label: 'Легальная доставка без границ' }, { value: '4.9/5', label: 'Средний рейтинг продавцов' }].map((metric) => (
               <div
-                key={metric.label}
-                className="rounded-3xl border border-white/10 bg-slate-900/60 p-6 text-center shadow-lg shadow-cyan-500/5"
+                   key={metric.label}
+                className="group rounded-3xl border border-white/25 bg-slate-950/85 p-6 text-center text-white shadow-[0_20px_30px_-25px_rgba(14,165,233,0.6)] transition-all duration-300 hover:-translate-y-1.5 hover:scale-[1.03] hover:border-cyan-300/70 hover:bg-slate-900/95 hover:shadow-[0_32px_50px_-20px_rgba(56,189,248,0.55)]"
               >
-                <div className="text-3xl font-semibold text-white">{metric.value}</div>
-                <p className="mt-2 text-sm text-slate-400">{metric.label}</p>
+                <div className="text-3xl font-semibold tracking-tight text-white transition-transform duration-300 group-hover:scale-[1.05]">
+                  {metric.value}
+                </div>
+                <p className="mt-2 text-sm font-medium text-slate-100/90 transition-colors duration-300 group-hover:text-white">
+                  {metric.label}
+                </p>
               </div>
             ))}
           </div>
