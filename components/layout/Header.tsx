@@ -41,7 +41,7 @@ export function Header() {
           {/* Правая часть - кнопки */}
           <div className="hidden md:flex items-center space-x-4">
             <Link
-              href="#"
+                 href="/suppliers/login"
               className="text-sm text-gray-600 hover:text-gray-900 font-normal px-3 py-1.5 transition-colors duration-200"
             >
               Вход для продавцов
@@ -82,7 +82,7 @@ export function Header() {
               ))}
               <div className="pt-3 space-y-2 border-t border-gray-100">
                 <Link
-                  href="#"
+                     href="/suppliers/login"
                   className="block text-gray-600 hover:text-gray-900 py-1.5 text-sm"
                   onClick={() => setIsMenuOpen(false)}
                 >
