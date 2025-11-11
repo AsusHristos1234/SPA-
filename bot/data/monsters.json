@@ -1,0 +1,35 @@
+[
+  {
+    "id": "forest_wolf",
+    "name": "Лесной волк",
+    "description": "Хищник с серебристой шерстью, охраняющий свои владения.",
+    "hp": 12,
+    "attack": 4,
+    "reward": {
+      "gold": 3,
+      "items": ["wolf_fang"]
+    }
+  },
+  {
+    "id": "ruin_specter",
+    "name": "Призрак руин",
+    "description": "Бестелесный страж, питающийся страхом путников.",
+    "hp": 15,
+    "attack": 5,
+    "reward": {
+      "gold": 5,
+      "items": ["storm_heart_fragment"]
+    }
+  },
+  {
+    "id": "ancient_guardian",
+    "name": "Древний страж",
+    "description": "Колосс из камня и корней, охраняющий Сердце Бури.",
+    "hp": 20,
+    "attack": 6,
+    "reward": {
+      "gold": 12,
+      "items": ["storm_heart"]
+    }
+  }
+]

@@ -1,0 +1,58 @@
+[
+  {
+    "id": "tattered_cloak",
+    "name": "Потрёпанный плащ",
+    "type": "armor",
+    "description": "Старый плащ, защищающий от холода и лёгких порезов.",
+    "effects": {"defense": 1}
+  },
+  {
+    "id": "lucky_amulet",
+    "name": "Амулет удачи",
+    "type": "trinket",
+    "description": "Небольшой талисман, притягивающий приятные случайности.",
+    "effects": {"luck": 1}
+  },
+  {
+    "id": "healing_herbs",
+    "name": "Лечебные травы",
+    "type": "consumable",
+    "description": "Смесь ароматных трав, ускоряющих восстановление.",
+    "effects": {"heal": 5}
+  },
+  {
+    "id": "enchanted_blade",
+    "name": "Зачарованный клинок",
+    "type": "weapon",
+    "description": "Клинок, напитанный лунной магией.",
+    "effects": {"attack": 2}
+  },
+  {
+    "id": "ruins_map",
+    "name": "Карта руин",
+    "type": "quest",
+    "description": "Схема древних проходов, которую вручает тавернщик.",
+    "effects": {}
+  },
+  {
+    "id": "wolf_fang",
+    "name": "Волчий клык",
+    "type": "quest",
+    "description": "Добыча храброго воина.",
+    "effects": {}
+  },
+  {
+    "id": "storm_heart_fragment",
+    "name": "Осколок Сердца Бури",
+    "type": "quest",
+    "description": "Пульсирующий осколок древней реликвии.",
+    "effects": {}
+  },
+  {
+    "id": "storm_heart",
+    "name": "Сердце Бури",
+    "type": "artifact",
+    "description": "Легендарный источник силы, способный защитить Эльдруин.",
+    "effects": {"mana": 5, "attack": 3}
+  }
+]
