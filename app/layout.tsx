@@ -136,9 +136,11 @@ function Footer() {
       <div className="border-t border-white/10">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-6 text-xs text-white/60 sm:flex-row sm:items-center sm:justify-between">
           <p>©2013–2025 | Все права защищены.</p>
+          
           <p>Разработка и продвижение</p>
         </div>
       </div>
     </footer>
   )
+  
 }

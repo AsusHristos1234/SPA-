@@ -1,16 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-
-interface Product {
-  id: number
-  title: string
-  url: string
-  thumbnailUrl: string
-  isLiked: boolean
-  description?: string
-  price?: number
-  category?: string
-}
+import { Product, ProductFormData } from '@/types/product'
 
 interface ProductStore {
   products: Product[]
@@ -48,7 +38,7 @@ export const useProductStore = create<ProductStore>()(
       initializeProducts: (products) => set({
         products: products.map(p => ({
           ...p,
-          isLiked: false,
+          isLiked: p.isLiked ?? false,
           price: p.price || Math.floor(Math.random() * 1000) + 10,
           category: p.category || ['electronics', 'clothing', 'books', 'home'][Math.floor(Math.random() * 4)],
           description: p.description || 'Lorem ipsum dolor sit amet consectetur adipisicing elit.'
@@ -58,15 +48,15 @@ export const useProductStore = create<ProductStore>()(
 
       toggleLike: (id) => set((state) => {
         const currentFavorites = state.favorites ?? []
-        let toggledProduct: Product | null = null
 
-        const updatedProducts = state.products.map(product => {
-          if (product.id === id) {
-            toggledProduct = { ...product, isLiked: !product.isLiked }
-            return toggledProduct
-          }
-          return product
-        })
+       
+
+        
+        const updatedProducts = state.products.map(product =>
+          product.id === id ? { ...product, isLiked: !product.isLiked } : product
+        )
+
+        const toggledProduct = updatedProducts.find(product => product.id === id)
 
         if (!toggledProduct) {
           return { products: state.products, favorites: state.favorites }

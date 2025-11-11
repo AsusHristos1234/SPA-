@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useProductStore } from '@/stores/useProductStore'
 import { Heart, Trash2, Edit, Star } from 'lucide-react'
@@ -57,13 +58,15 @@ export default function ProductCard({ product }: ProductCardProps) {
           {!imageLoaded && (
             <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-slate-800 to-slate-700" />
           )}
-          <img
+         <Image
             src={product.thumbnailUrl}
             alt={product.title}
-            className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 ${
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            className={`h-full w-full object-cover transition-transform duration-500 group-hover:scale-110 ${
               imageLoaded ? 'opacity-100' : 'opacity-0'
             }`}
-            onLoad={() => setImageLoaded(true)}
+            onLoadingComplete={() => setImageLoaded(true)}
           />
 
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />

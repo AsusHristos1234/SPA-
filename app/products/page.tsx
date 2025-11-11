@@ -12,22 +12,38 @@ export default function ProductsPage() {
     initializeProducts,
     getPaginatedProducts,
     setSearchQuery,
-    setFilters 
+    setFilters
   } = useProductStore()
-    const favoritesCount = useProductStore((state) => state.favorites?.length ?? 0)
+  const favoritesCount = useProductStore((state) => state.favorites?.length ?? 0)
   
   const [currentPage, setCurrentPage] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const productsPerPage = 12
 
   useEffect(() => {
-    setIsLoading(true)
-    fetch('https://jsonplaceholder.typicode.com/photos?_limit=50')
-      .then(res => res.json())
-      .then(data => {
+    const fetchProducts = async () => {
+      setIsLoading(true)
+      setError(null)
+
+      try {
+        const response = await fetch('/api/products')
+
+        if (!response.ok) {
+          throw new Error('Failed to load products')
+        }
+
+        const data = await response.json()
         initializeProducts(data)
+      } catch (err) {
+        console.error('Error fetching products', err)
+        setError('Не удалось загрузить товары. Попробуйте обновить страницу позже.')
+      } finally {
         setIsLoading(false)
-      })
+      }
+    }
+
+    fetchProducts()
   }, [initializeProducts])
 
   const products = getPaginatedProducts(currentPage, productsPerPage)
@@ -77,6 +93,10 @@ export default function ProductsPage() {
                 </div>
               ))}
             </div>
+          ) : error ? (
+            <div className="rounded-3xl border border-rose-500/30 bg-rose-500/10 p-8 text-center text-sm text-rose-100">
+              <p>{error}</p>
+            </div>
           ) : (
             <>
               <div className="flex flex-col gap-6 rounded-3xl border border-white/5 bg-white/5 p-6 text-sm text-white/70 backdrop-blur-lg sm:flex-row sm:items-center sm:justify-between">
@@ -92,7 +112,7 @@ export default function ProductsPage() {
                     className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.2em] text-white/60 transition-colors hover:border-white/30 hover:text-white"
                   >
                     Избранное
-                  {favoritesCount > 0 && (
+                    {favoritesCount > 0 && (
                       <span className="rounded-full bg-gradient-to-r from-rose-500 to-orange-400 px-2 py-0.5 text-[0.65rem] font-semibold text-slate-950">
                         {favoritesCount}
                       </span>

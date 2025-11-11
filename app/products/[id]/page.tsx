@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
 import { useProductStore } from '@/stores/useProductStore'
 import { ArrowLeft, Heart } from 'lucide-react'
@@ -46,10 +47,13 @@ export default function ProductDetail() {
         <div className="overflow-hidden rounded-[2.5rem] border border-white/10 bg-slate-950/70 shadow-[0_45px_80px_-60px_rgba(8,47,73,0.95)] backdrop-blur">
           <div className="grid gap-10 p-10 md:grid-cols-[1.1fr_0.9fr]">
             <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-900/70">
-              <img
+               <Image
                 src={product.url || product.thumbnailUrl}
                 alt={product.title}
+                width={960}
+                height={960}
                 className="h-full w-full object-cover"
+                priority
               />
               <button
                 onClick={() => toggleLike(product.id)}
