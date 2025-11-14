@@ -84,7 +84,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 async function ensureAlarm() {
   const settings = await getSettings();
-  const periodInMinutes = Math.max(5, Number(settings.checkIntervalMinutes) || DEFAULT_SETTINGS.checkIntervalMinutes);
+  const periodInMinutes = Math.max(1, Number(settings.checkIntervalMinutes) || DEFAULT_SETTINGS.checkIntervalMinutes);
   chrome.alarms.create(PRICE_CHECK_ALARM, { periodInMinutes });
 }
 
@@ -161,6 +161,7 @@ async function addProduct(product) {
     url: product.url,
     image: product.image,
     history: [historyEntry],
+    initialPrice: Number(product.currentPrice),
     lastKnownPrice: Number(product.currentPrice),
     lastUpdate: now,
     targetPrice: normalizeTargetPrice(product.targetPrice)
@@ -217,7 +218,13 @@ async function updateProductPrice(id, price, source = 'alarm') {
   const product = products[id];
   if (!product) return;
 
+  const initialAdded = ensureInitialPrice(product);
+
   if (product.lastKnownPrice === price) {
+    if (initialAdded) {
+      products[id] = product;
+      await chrome.storage.local.set({ [STORAGE_KEYS.PRODUCTS]: products });
+    }
     return;
   }
 
@@ -229,6 +236,7 @@ async function updateProductPrice(id, price, source = 'alarm') {
   if (product.history.length > 100) {
     product.history = product.history.slice(-100);
   }
+  ensureInitialPrice(product);
   products[id] = product;
   await chrome.storage.local.set({ [STORAGE_KEYS.PRODUCTS]: products });
   await notifyContent(id);
@@ -344,6 +352,32 @@ function calculateDrop(history) {
   const currentPrice = prices[prices.length - 1];
   const drop = maxPrice - currentPrice;
   return drop > 0 ? drop : 0;
+}
+
+function ensureInitialPrice(product) {
+  if (!product) return false;
+  const stored = typeof product.initialPrice === 'number' ? product.initialPrice : NaN;
+  if (Number.isFinite(stored) && stored > 0) {
+    return false;
+  }
+
+  let sourcePrice = null;
+  if (product.history && product.history.length) {
+    const firstEntry = product.history[0];
+    if (firstEntry && Number.isFinite(Number(firstEntry.price))) {
+      sourcePrice = Number(firstEntry.price);
+    }
+  }
+
+  if (!Number.isFinite(sourcePrice) && Number.isFinite(Number(product.lastKnownPrice))) {
+    sourcePrice = Number(product.lastKnownPrice);
+  }
+
+  if (Number.isFinite(sourcePrice) && sourcePrice > 0) {
+    product.initialPrice = Math.round(sourcePrice);
+    return true;
+  }
+  return false;
 }
 
 async function notifyContent(id, overrides = {}) {

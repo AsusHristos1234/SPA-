@@ -64,6 +64,7 @@ function renderProducts(products) {
     const node = template.content.firstElementChild.cloneNode(true);
     const image = node.querySelector('.product-card__image');
     const title = node.querySelector('.product-card__title');
+    const baseline = node.querySelector('.product-card__baseline');
     const price = node.querySelector('.product-card__price');
     const stats = node.querySelector('.product-card__stats');
     const chartSvg = node.querySelector('.product-card__chart-graph');
@@ -73,6 +74,7 @@ function renderProducts(products) {
     const thresholdStatus = node.querySelector('.product-card__threshold-status');
     const link = node.querySelector('.product-card__link');
     const remove = node.querySelector('.product-card__remove');
+    const toggle = node.querySelector('.product-card__toggle');
 
     if (product.image) {
       image.src = product.image;
@@ -82,6 +84,10 @@ function renderProducts(products) {
     }
 
     title.textContent = product.title || 'Товар без названия';
+    const initialPrice = getInitialPrice(product);
+    if (baseline) {
+      baseline.textContent = `Цена при добавлении: ${formatPrice(initialPrice)}`;
+    }
     price.textContent = `Текущая цена: ${formatPrice(product.lastKnownPrice)}`;
 
     const average = calculateAverage(product.history);
@@ -128,6 +134,14 @@ function renderProducts(products) {
       await chrome.runtime.sendMessage({ action: 'REMOVE_PRODUCT', payload: { id: product.id } });
       loadProducts();
     });
+
+    if (toggle) {
+      setCardCollapsedState(node, toggle, true);
+      toggle.addEventListener('click', () => {
+        const collapsed = node.classList.contains('product-card--collapsed');
+        setCardCollapsedState(node, toggle, !collapsed);
+      });
+    }
 
     list.appendChild(node);
   }
@@ -344,4 +358,32 @@ function showThresholdError(node, message) {
   node.classList.remove('product-card__threshold-status--active');
   node.classList.add('product-card__threshold-status--error');
   node.textContent = message;
+}
+
+function setCardCollapsedState(card, toggle, collapsed) {
+  if (!card) return;
+  card.classList.toggle('product-card--collapsed', collapsed);
+  if (toggle) {
+    toggle.setAttribute('aria-expanded', (!collapsed).toString());
+    const title = collapsed ? 'Показать подробности' : 'Скрыть подробности';
+    toggle.title = title;
+    toggle.setAttribute('aria-label', title);
+    toggle.textContent = collapsed ? '▸' : '▾';
+  }
+}
+
+function getInitialPrice(product) {
+  if (!product) return null;
+  const candidate = typeof product.initialPrice === 'number' ? product.initialPrice : null;
+  if (Number.isFinite(candidate)) {
+    return candidate;
+  }
+  if (product.history && product.history.length) {
+    const firstEntry = product.history[0];
+    const price = firstEntry && Number(firstEntry.price);
+    if (Number.isFinite(price)) {
+      return price;
+    }
+  }
+  return Number.isFinite(product.lastKnownPrice) ? product.lastKnownPrice : null;
 }

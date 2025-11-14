@@ -17,11 +17,20 @@
       </footer>
     </main>
     <template id="product-template">
-      <article class="product-card">
+      <article class="product-card product-card--collapsed">
+        <button
+          class="product-card__toggle"
+          type="button"
+          aria-expanded="false"
+          title="Показать подробности"
+        ></button>
         <img class="product-card__image" alt="" />
         <div class="product-card__content">
           <h2 class="product-card__title"></h2>
-          <p class="product-card__price"></p>
+          <div class="product-card__prices">
+            <p class="product-card__baseline"></p>
+            <p class="product-card__price"></p>
+          </div>
           <p class="product-card__stats"></p>
           <div class="product-card__chart">
             <svg

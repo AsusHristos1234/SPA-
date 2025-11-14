@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   input.value = settings.checkIntervalMinutes;
 
   document.getElementById('save').addEventListener('click', async () => {
-    const value = Math.max(5, Number(input.value) || DEFAULT_SETTINGS.checkIntervalMinutes);
+    const value = Math.max(1, Number(input.value) || DEFAULT_SETTINGS.checkIntervalMinutes);
     await chrome.runtime.sendMessage({
       action: 'UPDATE_SETTINGS',
       payload: { checkIntervalMinutes: value }
