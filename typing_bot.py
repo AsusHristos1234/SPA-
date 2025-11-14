@@ -1,8 +1,21 @@
-"""Utility functions for automated typing tasks that understand newline tokens.
+"""Utility helpers for Selenium scripts that type EdClub lessons.
 
-This module demonstrates how to iterate over token nodes from the EdClub typing
-interface and translate them into Selenium key presses.  It fixes the issue where
-new lines were being ignored because only visible text nodes were considered.
+The user already has a fairly big automation script (see the conversation history)
+and only needs to drop a couple of new helper calls into it.  This file keeps all
+logic related to parsing the lesson markup so the main script can stay focused on
+launching the browser, logging in and iterating over the assignments.
+
+Typical usage in the existing script looks like this::
+
+    from typing_bot import type_current_lesson
+
+    # inside run_typing_tasks_improved(...)
+    input_field = driver.find_element(By.CLASS_NAME, "cursor")
+    typed = type_current_lesson(driver, input_field, char_delay=0.2, word_delay=0.5)
+    logger.info("Введено символов: %s", typed)
+
+Nothing else in the original automation needs to change – the helper figures out
+где нужно нажимать Enter, где печатать пробел и т.д.
 """
 
 from __future__ import annotations
@@ -124,3 +137,26 @@ def type_tokens(driver: WebDriver, input_field: WebElement, *, char_delay: float
 
         input_field.send_keys(token.value)
         sleep(char_delay)
+
+
+def type_current_lesson(
+    driver: WebDriver,
+    input_field: WebElement,
+    *,
+    char_delay: float = 0.18,
+    word_delay: float = 0.45,
+) -> int:
+    """Type the visible lesson text and return the amount of characters pressed.
+
+    This is the entry point that can be imported by the original automation
+    script.  It does three small things:
+
+    1. Collects tokens with :func:`collect_tokens` so пробелы/Enter не потерялись.
+    2. Передаёт их в :func:`type_tokens`, используя заданные задержки.
+    3. Возвращает количество успешно обработанных токенов – это удобно для
+       логирования или дополнительных проверок.
+    """
+
+    tokens = collect_tokens(driver)
+    type_tokens(driver, input_field, char_delay=char_delay, word_delay=word_delay)
+    return len(tokens)
