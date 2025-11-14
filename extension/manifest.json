@@ -22,12 +22,6 @@
       "run_at": "document_idle"
     }
   ],
-  "web_accessible_resources": [
-    {
-      "resources": ["pageBridge.js"],
-      "matches": ["https://www.ozon.ru/*"]
-    }
-  ],
   "action": {
     "default_title": "Отслеживание цен Ozon",
     "default_popup": "popup.html"
