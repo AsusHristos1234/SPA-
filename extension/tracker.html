@@ -2,30 +2,35 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <title>Ozon Price Tracker</title>
+    <title>Все отслеживаемые товары — Ozon Price Tracker</title>
     <link rel="stylesheet" href="popup.css" />
+    <link rel="stylesheet" href="tracker.css" />
   </head>
-  <body>
-    <main class="popup">
-      <header class="popup__header">
-        <h1>Отслеживаемые товары</h1>
-        <button id="open-options" title="Настройки"></button>
+  <body class="tracker-body">
+    <main class="tracker">
+      <header class="tracker__header">
+        <div class="tracker__heading">
+          <h1>Все отслеживаемые товары</h1>
+          <p>
+            Здесь можно просмотреть подробную историю цен по каждому сохранённому товару, изменить порог уведомления и
+            открыть карточку на Ozon.
+          </p>
+        </div>
+        <div class="tracker__actions">
+          <button id="open-options" class="tracker__button tracker__button--ghost" type="button">Настройки</button>
+          <button id="refresh" class="tracker__button tracker__button--primary" type="button">Обновить цены</button>
+        </div>
       </header>
-      <section id="product-list" class="popup__list"></section>
-      <footer class="popup__footer">
-        <button id="open-tracker" class="popup__footer-button popup__footer-button--secondary">
-          Открыть страницу списка
-        </button>
-        <button id="refresh" class="popup__footer-button popup__footer-button--primary">Обновить цены</button>
-      </footer>
+      <section id="product-list" class="tracker__list"></section>
     </main>
+
     <template id="product-template">
-      <article class="product-card product-card--collapsed">
+      <article class="product-card">
         <button
           class="product-card__toggle"
           type="button"
-          aria-expanded="false"
-          title="Показать подробности"
+          aria-expanded="true"
+          title="Скрыть подробности"
         ></button>
         <img class="product-card__image" alt="" />
         <div class="product-card__content">
@@ -53,12 +58,13 @@
           </div>
           <div class="product-card__actions">
             <a class="product-card__link" target="_blank" rel="noopener noreferrer">Открыть</a>
-            <button class="product-card__remove">Удалить</button>
+            <button class="product-card__remove" type="button">Удалить</button>
           </div>
         </div>
       </article>
     </template>
+
     <script src="viewHelpers.js"></script>
-    <script src="popup.js"></script>
+    <script src="tracker.js"></script>
   </body>
 </html>

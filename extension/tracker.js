@@ -4,7 +4,6 @@ const list = document.getElementById('product-list');
 const template = document.getElementById('product-template');
 const refreshButton = document.getElementById('refresh');
 const openOptionsButton = document.getElementById('open-options');
-const openTrackerButton = document.getElementById('open-tracker');
 
 function sendMessage(message) {
   return new Promise((resolve, reject) => {
@@ -21,7 +20,7 @@ function sendMessage(message) {
 const renderer = createRenderer({
   listElement: list,
   templateElement: template,
-  collapsedByDefault: true,
+  collapsedByDefault: false,
   sendMessage,
   onChange: async () => {
     await loadProducts();
@@ -30,13 +29,6 @@ const renderer = createRenderer({
 
 if (openOptionsButton) {
   openOptionsButton.addEventListener('click', () => chrome.runtime.openOptionsPage());
-}
-
-if (openTrackerButton) {
-  openTrackerButton.addEventListener('click', () => {
-    const url = chrome.runtime.getURL('tracker.html');
-    chrome.tabs.create({ url });
-  });
 }
 
 if (refreshButton) {
