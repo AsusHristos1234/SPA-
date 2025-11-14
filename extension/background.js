@@ -16,6 +16,22 @@ const DEFAULT_NOTIFICATION_ICON =
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="24" fill="#1d4ed8"/><text x="50%" y="58%" text-anchor="middle" font-size="72" fill="#ffffff" font-family="Arial, sans-serif">O</text></svg>'
   );
 
+function safeSendRuntimeMessage(message) {
+  return new Promise((resolve) => {
+    try {
+      chrome.runtime.sendMessage(message, () => {
+        if (chrome.runtime.lastError) {
+          resolve(false);
+          return;
+        }
+        resolve(true);
+      });
+    } catch (error) {
+      resolve(false);
+    }
+  });
+}
+
 chrome.runtime.onInstalled.addListener(() => {
   ensureAlarm();
   setDefaultActionIcon();
@@ -346,7 +362,7 @@ async function notifyContent(id, overrides = {}) {
     payload.isTracked = false;
   }
 
-  chrome.runtime.sendMessage({
+  await safeSendRuntimeMessage({
     action: 'PRODUCT_STATUS_UPDATED',
     payload
   });
