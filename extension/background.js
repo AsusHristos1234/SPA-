@@ -44,6 +44,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     case 'GET_PRODUCT_STATUS':
       getProductStatus(payload).then((result) => sendResponse(result));
       return true;
+    case 'SET_TARGET_PRICE':
+      setProductTargetPrice(payload).then((result) => sendResponse(result));
+      return true;
     case 'UPDATE_PRICE_FROM_PAGE':
       if (payload && payload.id && payload.price) {
         updateProductPrice(payload.id, payload.price, 'page');
@@ -143,7 +146,8 @@ async function addProduct(product) {
     image: product.image,
     history: [historyEntry],
     lastKnownPrice: Number(product.currentPrice),
-    lastUpdate: now
+    lastUpdate: now,
+    targetPrice: normalizeTargetPrice(product.targetPrice)
   };
   await chrome.storage.local.set({ [STORAGE_KEYS.PRODUCTS]: products });
   await notifyContent(product.id);
@@ -182,7 +186,8 @@ async function getProductStatus({ id, currentPrice }) {
     currentPrice: product.lastKnownPrice,
     averagePrice,
     priceDrop,
-    lastUpdate: product.lastUpdate
+    lastUpdate: product.lastUpdate,
+    targetPrice: product.targetPrice || null
   };
 }
 
@@ -200,6 +205,7 @@ async function updateProductPrice(id, price, source = 'alarm') {
     return;
   }
 
+  const previousPrice = product.lastKnownPrice;
   const now = Date.now();
   product.lastKnownPrice = price;
   product.lastUpdate = now;
@@ -213,8 +219,49 @@ async function updateProductPrice(id, price, source = 'alarm') {
   await updateBadge();
 
   if (source === 'alarm') {
-    createDropNotification(product);
+    if (hasCrossedTargetPrice(product, previousPrice)) {
+      await createTargetPriceNotification(product);
+    } else {
+      await createDropNotification(product);
+    }
   }
+}
+
+function normalizeTargetPrice(value) {
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return null;
+    }
+    const digits = trimmed.replace(/\D/g, '');
+    if (!digits) {
+      return null;
+    }
+    const numeric = Number(digits);
+    return Number.isFinite(numeric) && numeric > 0 ? Math.floor(numeric) : null;
+  }
+  if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
+    return Math.floor(value);
+  }
+  return null;
+}
+
+async function setProductTargetPrice({ id, targetPrice }) {
+  if (!id) {
+    return { ok: false, error: 'Не передан идентификатор товара' };
+  }
+
+  const products = await getProducts();
+  const product = products[id];
+  if (!product) {
+    return { ok: false, error: 'Товар не найден' };
+  }
+
+  product.targetPrice = normalizeTargetPrice(targetPrice);
+  products[id] = product;
+  await chrome.storage.local.set({ [STORAGE_KEYS.PRODUCTS]: products });
+  await notifyContent(id);
+  return { ok: true, targetPrice: product.targetPrice };
 }
 
 async function checkAllPrices() {
@@ -294,6 +341,7 @@ async function notifyContent(id, overrides = {}) {
     payload.averagePrice = calculateAverage(product.history);
     payload.priceDrop = calculateDrop(product.history);
     payload.lastUpdate = product.lastUpdate;
+    payload.targetPrice = product.targetPrice || null;
   } else if (typeof payload.isTracked === 'undefined') {
     payload.isTracked = false;
   }
@@ -329,6 +377,39 @@ async function createDropNotification(product) {
       '\nНовая цена: ' +
       product.lastKnownPrice.toLocaleString('ru-RU') +
       ' ₽',
+    priority: 2
+  });
+}
+
+function hasCrossedTargetPrice(product, previousPrice) {
+  if (!product || !product.targetPrice) {
+    return false;
+  }
+  const target = Number(product.targetPrice);
+  if (!Number.isFinite(target) || target <= 0) {
+    return false;
+  }
+  const before = Number(previousPrice);
+  if (!Number.isFinite(before)) {
+    return product.lastKnownPrice <= target;
+  }
+  return before > target && product.lastKnownPrice <= target;
+}
+
+async function createTargetPriceNotification(product) {
+  if (!product || !product.targetPrice) return;
+
+  await chrome.notifications.create('price-target-' + product.id + '-' + Date.now(), {
+    type: 'basic',
+    iconUrl: product.image || DEFAULT_NOTIFICATION_ICON,
+    title: 'Цена достигла порога',
+    message:
+      product.title +
+      '\nТекущая цена: ' +
+      product.lastKnownPrice.toLocaleString('ru-RU') +
+      ' ₽ (порог: ' +
+      Number(product.targetPrice).toLocaleString('ru-RU') +
+      ' ₽)',
     priority: 2
   });
 }
