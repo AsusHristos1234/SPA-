@@ -218,18 +218,24 @@ async function updateProductPrice(id, price, source = 'alarm') {
   const product = products[id];
   if (!product) return;
 
+  const now = Date.now();
   const initialAdded = ensureInitialPrice(product);
 
   if (product.lastKnownPrice === price) {
-    if (initialAdded) {
+    let needsPersist = initialAdded;
+    if (!product.lastUpdate || product.lastUpdate !== now) {
+      product.lastUpdate = now;
+      needsPersist = true;
+    }
+    if (needsPersist) {
       products[id] = product;
       await chrome.storage.local.set({ [STORAGE_KEYS.PRODUCTS]: products });
+      await notifyContent(id);
     }
     return;
   }
 
   const previousPrice = product.lastKnownPrice;
-  const now = Date.now();
   product.lastKnownPrice = price;
   product.lastUpdate = now;
   product.history.push({ timestamp: now, price });
