@@ -59,9 +59,14 @@ chrome.runtime.onStartup.addListener(() => {
   setDefaultActionIcon();
 });
 
-chrome.alarms.onAlarm.addListener((alarm) => {
-  if (alarm.name === PRICE_CHECK_ALARM) {
-    checkAllPrices();
+chrome.alarms.onAlarm.addListener(async (alarm) => {
+  if (alarm.name !== PRICE_CHECK_ALARM) {
+    return;
+  }
+  try {
+    await checkAllPrices();
+  } catch (error) {
+    console.warn('Ошибка при фоновой проверке цен', error);
   }
 });
 
