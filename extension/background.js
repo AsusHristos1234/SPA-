@@ -16,6 +16,8 @@ const DEFAULT_NOTIFICATION_ICON =
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="24" fill="#1d4ed8"/><text x="50%" y="58%" text-anchor="middle" font-size="72" fill="#ffffff" font-family="Arial, sans-serif">O</text></svg>'
   );
 
+const UNCATEGORIZED_LABEL = 'Без категории';
+
 function safeSendRuntimeMessage(message) {
   return new Promise((resolve) => {
     try {
@@ -155,6 +157,8 @@ async function addProduct(product) {
   const products = await getProducts();
   const now = Date.now();
   const historyEntry = { timestamp: now, price: Number(product.currentPrice) };
+  const categoryPath = sanitizeCategoryPath(product.categoryPath, product.title);
+  const primaryCategory = derivePrimaryCategory(product.category, categoryPath);
   products[product.id] = {
     id: product.id,
     title: product.title,
@@ -164,7 +168,9 @@ async function addProduct(product) {
     initialPrice: Number(product.currentPrice),
     lastKnownPrice: Number(product.currentPrice),
     lastUpdate: now,
-    targetPrice: normalizeTargetPrice(product.targetPrice)
+    targetPrice: normalizeTargetPrice(product.targetPrice),
+    categoryPath,
+    category: primaryCategory
   };
   await chrome.storage.local.set({ [STORAGE_KEYS.PRODUCTS]: products });
   await notifyContent(product.id);
@@ -453,6 +459,53 @@ function calculateDrop(history) {
   const currentPrice = prices[prices.length - 1];
   const drop = maxPrice - currentPrice;
   return drop > 0 ? drop : 0;
+}
+
+function sanitizeCategoryPath(rawPath, title) {
+  if (!Array.isArray(rawPath)) {
+    return [];
+  }
+  const cleaned = [];
+  const seen = new Set();
+  const loweredTitle = title ? String(title).trim().toLocaleLowerCase('ru-RU') : '';
+  for (let i = 0; i < rawPath.length; i += 1) {
+    const part = rawPath[i];
+    if (!part && part !== 0) {
+      continue;
+    }
+    const normalized = String(part)
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (!normalized) {
+      continue;
+    }
+    if (/^главная$/i.test(normalized)) {
+      continue;
+    }
+    const lowered = normalized.toLocaleLowerCase('ru-RU');
+    if (loweredTitle && lowered === loweredTitle) {
+      continue;
+    }
+    if (seen.has(lowered)) {
+      continue;
+    }
+    seen.add(lowered);
+    cleaned.push(normalized);
+  }
+  return cleaned;
+}
+
+function derivePrimaryCategory(rawCategory, categoryPath) {
+  if (typeof rawCategory === 'string') {
+    const trimmed = rawCategory.trim();
+    if (trimmed) {
+      return trimmed;
+    }
+  }
+  if (Array.isArray(categoryPath) && categoryPath.length) {
+    return categoryPath[0] || categoryPath[categoryPath.length - 1] || UNCATEGORIZED_LABEL;
+  }
+  return UNCATEGORIZED_LABEL;
 }
 
 function ensureInitialPrice(product) {

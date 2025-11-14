@@ -13,6 +13,8 @@
     title: null,
     image: null,
     price: null,
+    category: null,
+    categoryPath: [],
     isTracked: false,
     lastUpdate: null,
     averagePrice: null,
@@ -128,11 +130,160 @@
     return img ? img.src : null;
   }
 
+  function parseCategoryPathFromMeta(title) {
+    const nodes = document.querySelectorAll(
+      'meta[itemprop="category"], meta[property="product:category"], meta[name="category"], meta[name="product:category"]'
+    );
+    const parts = [];
+    nodes.forEach((node) => {
+      const content = node.getAttribute('content') || node.getAttribute('value') || node.textContent;
+      if (!content) return;
+      content
+        .split(/[,>\n\r|\\/]+/)
+        .map((part) => part.trim())
+        .forEach((part) => {
+          if (part) {
+            parts.push(part);
+          }
+        });
+    });
+    return sanitizeCategoryParts(parts, title);
+  }
+
+  function parseCategoryPathFromStructuredData(title) {
+    const scripts = document.querySelectorAll('script[type="application/ld+json"]');
+    const collected = [];
+    for (let i = 0; i < scripts.length; i += 1) {
+      try {
+        const data = JSON.parse(scripts[i].textContent || '{}');
+        if (!data) {
+          continue;
+        }
+        if (Array.isArray(data)) {
+          data.forEach((item) => {
+            const names = extractCategoriesFromLdJson(item);
+            if (names.length) {
+              collected.push(...names);
+            }
+          });
+        } else {
+          const names = extractCategoriesFromLdJson(data);
+          if (names.length) {
+            collected.push(...names);
+          }
+        }
+      } catch (error) {
+        // ignore malformed JSON blocks
+      }
+    }
+    return sanitizeCategoryParts(collected, title);
+  }
+
+  function extractCategoriesFromLdJson(data) {
+    if (!data || typeof data !== 'object') {
+      return [];
+    }
+    if (data['@type'] === 'BreadcrumbList' && Array.isArray(data.itemListElement)) {
+      const parts = [];
+      data.itemListElement.forEach((item) => {
+        if (!item) return;
+        if (item.name) {
+          parts.push(item.name);
+        } else if (item.item && item.item.name) {
+          parts.push(item.item.name);
+        }
+      });
+      return parts;
+    }
+    if (data.category && typeof data.category === 'string') {
+      return data.category.split(/[,>\n\r|\\/]+/);
+    }
+    return [];
+  }
+
+  function parseCategoryPathFromBreadcrumbs(title) {
+    const widget = document.querySelector(
+      '[data-widget="webBreadcrumbs"], nav[aria-label*="крош" i], nav[aria-label*="bread" i]'
+    );
+    if (!widget) {
+      return [];
+    }
+    const nodes = widget.querySelectorAll('a span, a, li span');
+    const parts = [];
+    nodes.forEach((node) => {
+      const text = node.textContent ? node.textContent.trim() : '';
+      if (text) {
+        parts.push(text);
+      }
+    });
+    return sanitizeCategoryParts(parts, title);
+  }
+
+  function sanitizeCategoryParts(parts, title) {
+    if (!Array.isArray(parts)) {
+      return [];
+    }
+    const unique = [];
+    const seen = new Set();
+    const loweredTitle = title ? title.trim().toLocaleLowerCase('ru-RU') : '';
+    for (let i = 0; i < parts.length; i += 1) {
+      const raw = parts[i];
+      if (!raw && raw !== 0) {
+        continue;
+      }
+      const normalized = String(raw)
+        .replace(/\s+/g, ' ')
+        .trim();
+      if (!normalized) {
+        continue;
+      }
+      if (/^главная$/i.test(normalized)) {
+        continue;
+      }
+      const lowered = normalized.toLocaleLowerCase('ru-RU');
+      if (loweredTitle && lowered === loweredTitle) {
+        continue;
+      }
+      if (seen.has(lowered)) {
+        continue;
+      }
+      seen.add(lowered);
+      unique.push(normalized);
+    }
+    return unique;
+  }
+
+  function parseCategoryPath(title) {
+    const fromMeta = parseCategoryPathFromMeta(title);
+    if (fromMeta.length) {
+      return fromMeta;
+    }
+    const fromStructured = parseCategoryPathFromStructuredData(title);
+    if (fromStructured.length) {
+      return fromStructured;
+    }
+    const fromBreadcrumbs = parseCategoryPathFromBreadcrumbs(title);
+    if (fromBreadcrumbs.length) {
+      return fromBreadcrumbs;
+    }
+    return [];
+  }
+
+  function derivePrimaryCategory(categoryPath) {
+    if (!Array.isArray(categoryPath) || !categoryPath.length) {
+      return null;
+    }
+    return categoryPath[0] || categoryPath[categoryPath.length - 1] || null;
+  }
+
   function updateState() {
     state.productId = parseProductId();
     state.title = parseTitle();
     state.image = parseImage();
     state.price = parsePrice();
+    const categories = parseCategoryPath(state.title);
+    state.categoryPath = categories;
+    state.category = derivePrimaryCategory(categories);
   }
 
   function createWidget() {
@@ -184,7 +335,9 @@
           title: state.title,
           url: window.location.href,
           image: state.image,
-          currentPrice: state.price
+          currentPrice: state.price,
+          category: state.category,
+          categoryPath: state.categoryPath
         }
       }, (response) => {
         if (chrome.runtime.lastError) {
