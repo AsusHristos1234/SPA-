@@ -75,7 +75,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       setSettings(payload).then(() => sendResponse({ ok: true }));
       return true;
     case 'FORCE_PRICE_CHECK':
-      checkAllPrices().then(() => sendResponse({ ok: true }));
+      checkAllPrices('manual').then(() => sendResponse({ ok: true }));
       return true;
     default:
       break;
@@ -288,7 +288,7 @@ async function setProductTargetPrice({ id, targetPrice }) {
   return { ok: true, targetPrice: product.targetPrice };
 }
 
-async function checkAllPrices() {
+async function checkAllPrices(source = 'alarm') {
   const products = await getProducts();
   const entries = Object.values(products);
   if (!entries.length) {
@@ -299,8 +299,8 @@ async function checkAllPrices() {
   for (const product of entries) {
     try {
       const freshPrice = await fetchPrice(product.url);
-      if (freshPrice) {
-        await updateProductPrice(product.id, freshPrice, 'alarm');
+      if (typeof freshPrice === 'number' && Number.isFinite(freshPrice) && freshPrice > 0) {
+        await updateProductPrice(product.id, freshPrice, source);
       }
     } catch (error) {
       console.warn('Не удалось обновить цену', product.id, error);
@@ -327,6 +327,23 @@ async function fetchPrice(url) {
 
 function parsePriceFromHtml(html) {
   if (!html) return null;
+
+  if (typeof DOMParser !== 'undefined') {
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const fromDoc =
+        parsePriceFromMeta(doc) ||
+        parsePriceFromStructuredData(doc) ||
+        parsePriceFromWidgets(doc);
+      if (typeof fromDoc === 'number' && Number.isFinite(fromDoc)) {
+        return fromDoc;
+      }
+    } catch (error) {
+      // ignore DOM parser errors and fall back to regex parsing
+    }
+  }
+
   const directMatch = html.match(/"price"\s*:\s*{\s*"price"\s*:\s*(\d+)/);
   if (directMatch) {
     return Number(directMatch[1]);
@@ -337,6 +354,84 @@ function parsePriceFromHtml(html) {
     return Number(numbers);
   }
   return null;
+}
+
+function parsePriceFromMeta(doc) {
+  const node = doc.querySelector('meta[itemprop="price"], [itemprop="price"]');
+  if (!node) {
+    return null;
+  }
+  const candidate = node.getAttribute('content') || node.textContent;
+  return extractNumber(candidate);
+}
+
+function parsePriceFromStructuredData(doc) {
+  const scripts = doc.querySelectorAll('script[type="application/ld+json"]');
+  for (let i = 0; i < scripts.length; i += 1) {
+    try {
+      const data = JSON.parse(scripts[i].textContent || '{}');
+      if (!data) {
+        continue;
+      }
+      if (data.offers && typeof data.offers === 'object') {
+        if (Array.isArray(data.offers)) {
+          for (let j = 0; j < data.offers.length; j += 1) {
+            const offer = data.offers[j];
+            if (offer && offer.price) {
+              const price = extractNumber(String(offer.price));
+              if (typeof price === 'number' && Number.isFinite(price)) {
+                return price;
+              }
+            }
+          }
+        } else if (data.offers.price) {
+          const price = extractNumber(String(data.offers.price));
+          if (typeof price === 'number' && Number.isFinite(price)) {
+            return price;
+          }
+        }
+      }
+      if (data.price) {
+        const price = extractNumber(String(data.price));
+        if (typeof price === 'number' && Number.isFinite(price)) {
+          return price;
+        }
+      }
+    } catch (error) {
+      // ignore malformed JSON blocks
+    }
+  }
+  return null;
+}
+
+function parsePriceFromWidgets(doc) {
+  const priceContainer = doc.querySelector(
+    '[data-widget="webCurrentPrice"], [data-widget="webDetailBlock"], [data-widget="webPricing"], [data-widget="webMainPrice"], [data-widget="webSale"]'
+  );
+  if (!priceContainer) {
+    return null;
+  }
+
+  const textNodes = priceContainer.querySelectorAll('span, div, p, strong');
+  for (let i = 0; i < textNodes.length; i += 1) {
+    const text = textNodes[i].textContent || '';
+    if (/\d/.test(text) && /₽|руб|RUB/i.test(text)) {
+      const price = extractNumber(text);
+      if (typeof price === 'number' && Number.isFinite(price)) {
+        return price;
+      }
+    }
+  }
+
+  const fallback = priceContainer.textContent || '';
+  return extractNumber(fallback);
+}
+
+function extractNumber(text) {
+  if (!text) return null;
+  const numbers = String(text).replace(/[^0-9]/g, '');
+  if (!numbers) return null;
+  return Number(numbers);
 }
 
 function calculateAverage(history) {
