@@ -1,4 +1,4 @@
-const { STORAGE_KEYS, createRenderer } = window.ProductsView;
+const { STORAGE_KEYS, createRenderer, requestNotificationPermission } = window.ProductsView;
 
 const list = document.getElementById('product-list');
 const template = document.getElementById('product-template');
@@ -49,6 +49,7 @@ if (refreshButton) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  ensureNotificationPermission();
   loadProducts();
 });
 
@@ -62,4 +63,15 @@ async function loadProducts() {
   const { [STORAGE_KEYS.PRODUCTS]: stored } = await chrome.storage.local.get(STORAGE_KEYS.PRODUCTS);
   allProducts = Object.values(stored || {});
   renderer.render(allProducts);
+}
+
+async function ensureNotificationPermission() {
+  if (typeof requestNotificationPermission !== 'function') {
+    return;
+  }
+  try {
+    await requestNotificationPermission();
+  } catch (error) {
+    console.warn('Не удалось запросить разрешение на уведомления', error);
+  }
 }

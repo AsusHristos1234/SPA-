@@ -3,6 +3,21 @@
     PRODUCTS: 'trackedProducts'
   };
 
+  async function requestNotificationPermission() {
+    if (typeof Notification === 'undefined') {
+      return 'unsupported';
+    }
+    if (Notification.permission === 'granted' || Notification.permission === 'denied') {
+      return Notification.permission;
+    }
+    try {
+      return await Notification.requestPermission();
+    } catch (error) {
+      console.warn('Не удалось запросить разрешение на уведомления', error);
+      return 'error';
+    }
+  }
+
   function createRenderer(config) {
     if (!config) {
       throw new Error('Renderer configuration is required.');
@@ -426,6 +441,7 @@
 
   window.ProductsView = {
     STORAGE_KEYS,
-    createRenderer
+    createRenderer,
+    requestNotificationPermission
   };
 })();

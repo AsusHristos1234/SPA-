@@ -16,6 +16,23 @@ const DEFAULT_NOTIFICATION_ICON =
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="24" fill="#1d4ed8"/><text x="50%" y="58%" text-anchor="middle" font-size="72" fill="#ffffff" font-family="Arial, sans-serif">O</text></svg>'
   );
 
+async function showWebNotification(notificationId, title, options) {
+  if (typeof self === 'undefined' || !self.registration || typeof self.registration.showNotification !== 'function') {
+    return false;
+  }
+  if (typeof Notification !== 'undefined' && Notification.permission !== 'granted') {
+    return false;
+  }
+  try {
+    const payload = Object.assign({ tag: notificationId }, options || {});
+    await self.registration.showNotification(title, payload);
+    return true;
+  } catch (error) {
+    console.warn('Не удалось отправить уведомление', error);
+    return false;
+  }
+}
+
 function safeSendRuntimeMessage(message) {
   return new Promise((resolve) => {
     try {
@@ -519,16 +536,16 @@ async function createDropNotification(product) {
   const drop = calculateDrop(product.history);
   if (!drop) return;
 
-  await chrome.notifications.create('price-drop-' + product.id + '-' + Date.now(), {
-    type: 'basic',
-    iconUrl: product.image || DEFAULT_NOTIFICATION_ICON,
-    title: 'Цена снизилась! 🎉',
-    message:
+  await showWebNotification('price-drop-' + product.id, 'Цена снизилась! 🎉', {
+    body:
       product.title +
       '\nНовая цена: ' +
       product.lastKnownPrice.toLocaleString('ru-RU') +
       ' ₽',
-    priority: 2
+    icon: product.image || DEFAULT_NOTIFICATION_ICON,
+    badge: DEFAULT_NOTIFICATION_ICON,
+    renotify: true,
+    data: { productId: product.id, type: 'drop' }
   });
 }
 
@@ -550,17 +567,17 @@ function hasCrossedTargetPrice(product, previousPrice) {
 async function createTargetPriceNotification(product) {
   if (!product || !product.targetPrice) return;
 
-  await chrome.notifications.create('price-target-' + product.id + '-' + Date.now(), {
-    type: 'basic',
-    iconUrl: product.image || DEFAULT_NOTIFICATION_ICON,
-    title: 'Цена достигла порога',
-    message:
+  await showWebNotification('price-target-' + product.id, 'Цена достигла порога', {
+    body:
       product.title +
       '\nТекущая цена: ' +
       product.lastKnownPrice.toLocaleString('ru-RU') +
       ' ₽ (порог: ' +
       Number(product.targetPrice).toLocaleString('ru-RU') +
       ' ₽)',
-    priority: 2
+    icon: product.image || DEFAULT_NOTIFICATION_ICON,
+    badge: DEFAULT_NOTIFICATION_ICON,
+    renotify: true,
+    data: { productId: product.id, type: 'target' }
   });
 }
