@@ -10,9 +10,11 @@ const DEFAULT_SETTINGS = {
 const PRICE_CHECK_ALARM = 'ozon-price-check';
 
 const ICON_SIZES = [16, 32, 48, 128];
-const DEFAULT_NOTIFICATION_ICON = `data:image/svg+xml;utf8,${encodeURIComponent(
-  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="24" fill="#1d4ed8"/><text x="50%" y="58%" text-anchor="middle" font-size="72" fill="#ffffff" font-family="Arial, sans-serif">O</text></svg>'
-)};
+const DEFAULT_NOTIFICATION_ICON =
+  'data:image/svg+xml;utf8,' +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="24" fill="#1d4ed8"/><text x="50%" y="58%" text-anchor="middle" font-size="72" fill="#ffffff" font-family="Arial, sans-serif">O</text></svg>'
+  );
 
 chrome.runtime.onInstalled.addListener(() => {
   ensureAlarm();
@@ -93,7 +95,8 @@ function createIconImageData(size) {
     context.fillStyle = '#1d4ed8';
     context.fillRect(0, 0, size, size);
     context.fillStyle = '#ffffff';
-    context.font = `${Math.round(size * 0.65)}px sans-serif`;
+    const fontSize = Math.round(size * 0.65);
+    context.font = fontSize + 'px sans-serif';
     context.textAlign = 'center';
     context.textBaseline = 'middle';
     context.fillText('O', size / 2, size / 2 + size * 0.05);
@@ -245,7 +248,7 @@ async function fetchPrice(url) {
     }
   });
   if (!response.ok) {
-    throw new Error(`HTTP ${response.status}`);
+    throw new Error('HTTP ' + response.status);
   }
   const html = await response.text();
   return parsePriceFromHtml(html);
@@ -317,11 +320,15 @@ async function createDropNotification(product) {
   const drop = calculateDrop(product.history);
   if (!drop) return;
 
-  await chrome.notifications.create(`price-drop-${product.id}-${Date.now()}`, {
+  await chrome.notifications.create('price-drop-' + product.id + '-' + Date.now(), {
     type: 'basic',
     iconUrl: product.image || DEFAULT_NOTIFICATION_ICON,
     title: 'Цена снизилась! 🎉',
-    message: `${product.title}\nНовая цена: ${product.lastKnownPrice.toLocaleString('ru-RU')} ₽`,
+    message:
+      product.title +
+      '\nНовая цена: ' +
+      product.lastKnownPrice.toLocaleString('ru-RU') +
+      ' ₽',
     priority: 2
   });
 }
