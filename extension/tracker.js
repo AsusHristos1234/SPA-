@@ -17,11 +17,24 @@ function sendMessage(message) {
   });
 }
 
+function renderEmptyTable(listElement, message) {
+  const row = document.createElement('tr');
+  row.className = 'tracker__row tracker__row--empty';
+  const cell = document.createElement('td');
+  cell.className = 'tracker__cell tracker__cell--empty';
+  cell.colSpan = 7;
+  cell.textContent = message;
+  row.appendChild(cell);
+  listElement.appendChild(row);
+}
+
 const renderer = createRenderer({
   listElement: list,
   templateElement: template,
   collapsedByDefault: false,
   sendMessage,
+  compactPriceLabels: true,
+  emptyRenderer: renderEmptyTable,
   onChange: async () => {
     await loadProducts();
   }

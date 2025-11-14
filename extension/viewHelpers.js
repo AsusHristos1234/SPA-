@@ -13,7 +13,9 @@
       sendMessage,
       collapsedByDefault = false,
       emptyMessage = 'Список отслеживания пуст. Откройте карточку товара и нажмите «Добавить в отслеживание».',
-      onChange
+      onChange,
+      compactPriceLabels = false,
+      emptyRenderer
     } = config;
 
     if (!listElement || !templateElement) {
@@ -29,10 +31,14 @@
       const items = Array.isArray(products) ? products.slice() : [];
 
       if (!items.length) {
-        const empty = document.createElement('p');
-        empty.className = 'empty-message';
-        empty.textContent = emptyMessage;
-        listElement.appendChild(empty);
+        if (typeof emptyRenderer === 'function') {
+          emptyRenderer(listElement, emptyMessage);
+        } else {
+          const empty = document.createElement('p');
+          empty.className = 'empty-message';
+          empty.textContent = emptyMessage;
+          listElement.appendChild(empty);
+        }
         return;
       }
 
@@ -68,22 +74,29 @@
 
         if (baseline) {
           const initialPrice = getInitialPrice(product);
-          baseline.textContent = 'Цена при добавлении: ' + formatPrice(initialPrice);
+          baseline.textContent = compactPriceLabels
+            ? formatPrice(initialPrice)
+            : 'Цена при добавлении: ' + formatPrice(initialPrice);
         }
 
         if (price) {
-          price.textContent = 'Текущая цена: ' + formatPrice(product.lastKnownPrice);
+          price.textContent = compactPriceLabels
+            ? formatPrice(product.lastKnownPrice)
+            : 'Текущая цена: ' + formatPrice(product.lastKnownPrice);
         }
 
         if (stats) {
           const average = calculateAverage(product.history);
           const drop = calculateDrop(product.history);
           const lastUpdate = product.lastUpdate ? new Date(product.lastUpdate).toLocaleString('ru-RU') : '—';
-          const parts = ['Средняя: ' + (average ? formatPrice(average) : 'нет данных'), 'Обновлено: ' + lastUpdate];
+          const parts = [
+            'Средняя: ' + (average ? formatPrice(average) : 'нет данных'),
+            'Обновлено: ' + lastUpdate
+          ];
           if (drop) {
             parts.unshift('Снижение: −' + formatPrice(drop));
           }
-          stats.textContent = parts.join(' • ');
+          stats.textContent = parts.join(compactPriceLabels ? '\n' : ' • ');
         }
 
         renderPriceChart(chartSvg, chartCaption, product.history, product.id);

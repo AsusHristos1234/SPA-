@@ -21,47 +21,73 @@
           <button id="refresh" class="tracker__button tracker__button--primary" type="button">Обновить цены</button>
         </div>
       </header>
-      <section id="product-list" class="tracker__list"></section>
+      <section class="tracker__table-wrapper">
+        <table class="tracker__table" aria-describedby="tracker-description">
+          <caption id="tracker-description" class="visually-hidden">
+            Таблица отслеживаемых товаров с ценами, динамикой и настройками уведомлений.
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Товар</th>
+              <th scope="col">Цена при добавлении</th>
+              <th scope="col">Текущая цена</th>
+              <th scope="col">Статистика</th>
+              <th scope="col">История цен</th>
+              <th scope="col">Порог уведомления</th>
+              <th scope="col">Действия</th>
+            </tr>
+          </thead>
+          <tbody id="product-list"></tbody>
+        </table>
+      </section>
     </main>
 
     <template id="product-template">
-      <article class="product-card">
-        <button
-          class="product-card__toggle"
-          type="button"
-          aria-expanded="true"
-          title="Скрыть подробности"
-        ></button>
-        <img class="product-card__image" alt="" />
-        <div class="product-card__content">
-          <h2 class="product-card__title"></h2>
-          <div class="product-card__prices">
-            <p class="product-card__baseline"></p>
-            <p class="product-card__price"></p>
+      <tr class="tracker__row">
+        <td class="tracker__cell tracker__cell--product">
+          <div class="tracker__product">
+            <img class="product-card__image tracker__product-image" alt="" />
+            <div class="tracker__product-info">
+              <h2 class="product-card__title"></h2>
+              <a class="product-card__link tracker__product-link" target="_blank" rel="noopener noreferrer">Открыть на Ozon</a>
+            </div>
           </div>
-          <p class="product-card__stats"></p>
-          <div class="product-card__chart">
+        </td>
+        <td class="tracker__cell tracker__cell--baseline">
+          <span class="product-card__baseline"></span>
+        </td>
+        <td class="tracker__cell tracker__cell--price">
+          <span class="product-card__price"></span>
+        </td>
+        <td class="tracker__cell tracker__cell--stats">
+          <span class="product-card__stats"></span>
+        </td>
+        <td class="tracker__cell tracker__cell--chart">
+          <div class="product-card__chart tracker__chart">
             <svg
-              class="product-card__chart-graph"
+              class="product-card__chart-graph tracker__chart-graph"
               viewBox="0 0 200 60"
               preserveAspectRatio="none"
               aria-hidden="true"
             ></svg>
-            <p class="product-card__chart-caption"></p>
+            <p class="product-card__chart-caption tracker__chart-caption"></p>
           </div>
-          <div class="product-card__threshold">
-            <label class="product-card__threshold-label">
-              Порог уведомления (₽)
+        </td>
+        <td class="tracker__cell tracker__cell--threshold">
+          <div class="product-card__threshold tracker__threshold">
+            <label class="product-card__threshold-label tracker__threshold-label">
+              <span>Порог уведомления (₽)</span>
               <input type="number" class="product-card__threshold-input" min="0" step="1" placeholder="Например, 1200" />
             </label>
-            <p class="product-card__threshold-status"></p>
+            <p class="product-card__threshold-status tracker__threshold-status"></p>
           </div>
-          <div class="product-card__actions">
-            <a class="product-card__link" target="_blank" rel="noopener noreferrer">Открыть</a>
-            <button class="product-card__remove" type="button">Удалить</button>
+        </td>
+        <td class="tracker__cell tracker__cell--actions">
+          <div class="tracker__actions-group">
+            <button class="product-card__remove tracker__action-button" type="button">Удалить</button>
           </div>
-        </div>
-      </article>
+        </td>
+      </tr>
     </template>
 
     <script src="viewHelpers.js"></script>
