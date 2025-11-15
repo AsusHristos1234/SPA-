@@ -16,6 +16,74 @@ const DEFAULT_NOTIFICATION_ICON =
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="24" fill="#1d4ed8"/><text x="50%" y="58%" text-anchor="middle" font-size="72" fill="#ffffff" font-family="Arial, sans-serif">O</text></svg>'
   );
 
+async function requestText(url, options) {
+  const settings = Object.assign({ headers: {}, withCredentials: true }, options || {});
+  if (!url) {
+    return '';
+  }
+
+  if (typeof XMLHttpRequest !== 'undefined') {
+    return new Promise((resolve, reject) => {
+      try {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.withCredentials = Boolean(settings.withCredentials);
+        const headerEntries = Object.entries(settings.headers || {});
+        for (let i = 0; i < headerEntries.length; i += 1) {
+          const [key, value] = headerEntries[i];
+          if (value !== undefined && value !== null) {
+            try {
+              xhr.setRequestHeader(key, String(value));
+            } catch (error) {
+              // ignore forbidden header mutations
+            }
+          }
+        }
+        xhr.onreadystatechange = function onReadyStateChange() {
+          if (xhr.readyState === XMLHttpRequest.DONE) {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              resolve(xhr.responseText || '');
+            } else {
+              reject(new Error('HTTP ' + xhr.status));
+            }
+          }
+        };
+        xhr.onerror = function onError() {
+          reject(new Error('Network error'));
+        };
+        xhr.onabort = function onAbort() {
+          reject(new Error('Request aborted'));
+        };
+        xhr.send();
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  const response = await fetch(url, {
+    credentials: settings.withCredentials ? 'include' : 'omit',
+    cache: 'no-store',
+    headers: settings.headers || {}
+  });
+  if (!response.ok) {
+    throw new Error('HTTP ' + response.status);
+  }
+  return response.text();
+}
+
+async function requestJson(url, options) {
+  const text = await requestText(url, options);
+  if (!text) {
+    return null;
+  }
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    return null;
+  }
+}
+
 async function showWebNotification(notificationId, title, options) {
   if (typeof self === 'undefined' || !self.registration || typeof self.registration.showNotification !== 'function') {
     return false;
@@ -344,19 +412,15 @@ async function fetchPrice(url) {
     return apiPrice;
   }
 
-  const response = await fetch(url, {
-    credentials: 'include',
-    cache: 'no-store',
-    mode: 'cors',
+  const html = await requestText(url, {
     headers: {
       Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-      'Accept-Language': 'ru-RU,ru;q=0.9'
+      'Accept-Language': 'ru-RU,ru;q=0.9',
+      'Cache-Control': 'no-cache',
+      Pragma: 'no-cache',
+      'X-Requested-With': 'XMLHttpRequest'
     }
   });
-  if (!response.ok) {
-    throw new Error('HTTP ' + response.status);
-  }
-  const html = await response.text();
   return parsePriceFromHtml(html);
 }
 
@@ -371,21 +435,16 @@ async function fetchPriceFromComposerApi(url) {
   }
 
   try {
-    const response = await fetch(composerUrl, {
-      credentials: 'include',
-      cache: 'no-store',
-      mode: 'cors',
+    const data = await requestJson(composerUrl, {
       headers: {
         Accept: 'application/json,text/plain,*/*',
-        'Accept-Language': 'ru-RU,ru;q=0.9'
+        'Accept-Language': 'ru-RU,ru;q=0.9',
+        'Cache-Control': 'no-cache',
+        Pragma: 'no-cache',
+        'X-Requested-With': 'XMLHttpRequest'
       }
     });
 
-    if (!response.ok) {
-      return null;
-    }
-
-    const data = await response.json().catch(() => null);
     if (!data) {
       return null;
     }
