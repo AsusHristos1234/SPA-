@@ -338,6 +338,12 @@ async function checkAllPrices(source = 'alarm') {
 
 async function fetchPrice(url) {
   if (!url) return null;
+
+  const apiPrice = await fetchPriceFromComposerApi(url);
+  if (typeof apiPrice === 'number' && Number.isFinite(apiPrice) && apiPrice > 0) {
+    return apiPrice;
+  }
+
   const response = await fetch(url, {
     credentials: 'include',
     cache: 'no-store',
@@ -352,6 +358,47 @@ async function fetchPrice(url) {
   }
   const html = await response.text();
   return parsePriceFromHtml(html);
+}
+
+async function fetchPriceFromComposerApi(url) {
+  let composerUrl = null;
+  try {
+    const parsedUrl = new URL(url);
+    const path = parsedUrl.pathname + (parsedUrl.search || '');
+    composerUrl = parsedUrl.origin + '/api/composer-api.bx/page/json/v2?url=' + encodeURIComponent(path || '/');
+  } catch (error) {
+    return null;
+  }
+
+  try {
+    const response = await fetch(composerUrl, {
+      credentials: 'include',
+      cache: 'no-store',
+      mode: 'cors',
+      headers: {
+        Accept: 'application/json,text/plain,*/*',
+        'Accept-Language': 'ru-RU,ru;q=0.9'
+      }
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json().catch(() => null);
+    if (!data) {
+      return null;
+    }
+
+    const price = parsePriceFromComposerJson(data);
+    if (typeof price === 'number' && Number.isFinite(price)) {
+      return price;
+    }
+  } catch (error) {
+    console.warn('Ошибка при запросе API Ozon', error);
+  }
+
+  return null;
 }
 
 function parsePriceFromHtml(html) {
@@ -384,6 +431,104 @@ function parsePriceFromHtml(html) {
     const numbers = fallbackMatch[1].replace(/[^0-9]/g, '');
     if (numbers) {
       return Number(numbers);
+    }
+  }
+
+  return null;
+}
+
+function parsePriceFromComposerJson(data) {
+  return extractPriceCandidate(data, new Set());
+}
+
+function extractPriceCandidate(node, seen) {
+  if (node === null || node === undefined) {
+    return null;
+  }
+
+  if (typeof node === 'number') {
+    if (Number.isFinite(node) && node > 0) {
+      return Math.round(node);
+    }
+    return null;
+  }
+
+  if (typeof node === 'string') {
+    const trimmed = node.trim();
+    if (!trimmed) {
+      return null;
+    }
+
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (parsed && typeof parsed === 'object') {
+        const nested = extractPriceCandidate(parsed, seen);
+        if (typeof nested === 'number' && Number.isFinite(nested)) {
+          return nested;
+        }
+      }
+    } catch (error) {
+      // ignore invalid JSON strings
+    }
+
+    const normalized = normalizePriceHtml(trimmed);
+    const fromJsonString = parsePriceFromJsonStrings(normalized);
+    if (typeof fromJsonString === 'number' && Number.isFinite(fromJsonString)) {
+      return fromJsonString;
+    }
+
+    const fromRawNumber = extractNumber(trimmed);
+    if (typeof fromRawNumber === 'number' && Number.isFinite(fromRawNumber) && /₽|руб|RUB/i.test(trimmed)) {
+      return fromRawNumber;
+    }
+
+    return null;
+  }
+
+  if (Array.isArray(node)) {
+    for (let i = 0; i < node.length; i += 1) {
+      const price = extractPriceCandidate(node[i], seen);
+      if (typeof price === 'number' && Number.isFinite(price)) {
+        return price;
+      }
+    }
+    return null;
+  }
+
+  if (typeof node === 'object') {
+    if (seen.has(node)) {
+      return null;
+    }
+    seen.add(node);
+
+    const directKeys = [
+      'price',
+      'finalPrice',
+      'finalPriceValue',
+      'priceValue',
+      'currentPrice',
+      'convertedPrice',
+      'priceAmount',
+      'totalPrice',
+      'priceWithDiscount'
+    ];
+
+    for (let i = 0; i < directKeys.length; i += 1) {
+      const key = directKeys[i];
+      if (Object.prototype.hasOwnProperty.call(node, key)) {
+        const candidate = extractPriceCandidate(node[key], seen);
+        if (typeof candidate === 'number' && Number.isFinite(candidate)) {
+          return candidate;
+        }
+      }
+    }
+
+    const values = Object.keys(node);
+    for (let i = 0; i < values.length; i += 1) {
+      const price = extractPriceCandidate(node[values[i]], seen);
+      if (typeof price === 'number' && Number.isFinite(price)) {
+        return price;
+      }
     }
   }
 
