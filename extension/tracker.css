@@ -1,0 +1,199 @@
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.tracker-body {
+  margin: 0;
+  width: auto;
+  min-height: 100vh;
+  background: #f1f5f9;
+  font-family: "Inter", "Segoe UI", sans-serif;
+  color: #0f172a;
+}
+
+.tracker {
+  max-width: 1660px;
+  margin: 0 auto;
+  padding: 32px clamp(16px, 4vw, 48px) 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.tracker__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.tracker__heading h1 {
+  font-size: 28px;
+  margin: 0 0 8px;
+}
+
+.tracker__heading p {
+  margin: 0;
+  max-width: 540px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #475569;
+}
+
+.tracker__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-left: auto;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.tracker__button {
+  padding: 12px 18px;
+  border-radius: 14px;
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  flex: 0 0 auto;
+}
+
+.tracker__button:disabled {
+  opacity: 0.7;
+  cursor: default;
+  transform: none;
+  box-shadow: none;
+}
+
+.tracker__button:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(37, 99, 235, 0.16);
+}
+
+.tracker__button--primary {
+  background: #1d4ed8;
+  color: #fff;
+}
+
+.tracker__button--ghost {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+#open-options.tracker__button {
+  width: auto;
+  height: auto;
+  padding: 12px 18px;
+  border-radius: 14px;
+  background: #e2e8f0;
+  color: #1e293b;
+  position: static;
+}
+
+#open-options.tracker__button::before {
+  content: none;
+}
+
+
+.tracker__list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: flex-start;
+  gap: clamp(20px, 2.5vw, 32px);
+  padding: 8px 4px 4px;
+  box-sizing: border-box;
+}
+
+.tracker__card {
+  flex: 0 1 clamp(280px, 19vw, 340px);
+  max-width: 340px;
+  width: 100%;
+  box-sizing: border-box;
+  padding-bottom: 18px;
+}
+
+.tracker__card .product-card__image {
+  width: 72px;
+  height: 72px;
+}
+
+.tracker__card .product-card__toggle {
+  top: 10px;
+  right: 10px;
+}
+
+.tracker__card .product-card__content {
+  gap: 8px;
+}
+
+.tracker__card .product-card__prices {
+  gap: 4px;
+}
+
+.tracker__card .product-card__chart {
+  margin-top: 6px;
+}
+
+.tracker__card .product-card__actions {
+  margin-top: auto;
+}
+
+.tracker__card .product-card__link {
+  text-decoration: none;
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.tracker__card .product-card__link:hover {
+  text-decoration: underline;
+}
+
+.tracker__list .empty-message {
+  flex: 1 1 100%;
+  text-align: center;
+  margin: 0;
+  padding: 48px 24px;
+  font-size: 16px;
+  color: #64748b;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+}
+
+@media (max-width: 720px) {
+  .tracker {
+    padding: 24px 16px 32px;
+  }
+
+  .tracker__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .tracker__actions {
+    margin-left: 0;
+    justify-content: flex-start;
+  }
+
+  .tracker__actions .tracker__button {
+    flex: 1 1 220px;
+  }
+}
+
+@media (max-width: 1180px) {
+  .tracker__card {
+    flex-basis: clamp(240px, 42vw, 320px);
+  }
+}
+

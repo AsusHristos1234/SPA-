@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Настройки отслеживания цены Ozon</title>
+    <style>
+      body {
+        font-family: "Inter", "Segoe UI", sans-serif;
+        margin: 0;
+        padding: 24px;
+        background: #f3f4f6;
+        color: #111827;
+      }
+      .container {
+        max-width: 480px;
+        margin: 0 auto;
+        background: #fff;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 20px 50px rgba(31, 41, 55, 0.15);
+      }
+      h1 {
+        font-size: 24px;
+        margin-bottom: 16px;
+      }
+      h2 {
+        font-size: 18px;
+        margin: 24px 0 12px;
+      }
+      p {
+        line-height: 1.6;
+        margin-bottom: 16px;
+      }
+      label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      input[type="number"],
+      input[type="text"],
+      input[type="password"] {
+        width: 100%;
+        padding: 12px;
+        border-radius: 12px;
+        border: 1px solid #d1d5db;
+        font-size: 16px;
+      }
+      button {
+        margin-top: 16px;
+        padding: 12px 18px;
+        background: #2d6bff;
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .hint {
+        margin-top: 8px;
+        color: #6b7280;
+        font-size: 14px;
+      }
+      .toast {
+        margin-top: 16px;
+        color: #047857;
+        font-size: 14px;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Настройки расширения</h1>
+      <p>
+        Укажите, как часто расширение должно проверять цены на добавленные товары.
+        Чем короче интервал, тем быстрее вы узнаете о скидке.
+      </p>
+      <label for="interval">Интервал проверки (в минутах)</label>
+      <input id="interval" type="number" min="1" step="1" value="60" />
+      <p class="hint">Минимальный интервал — 1 минута. Оптимально ставить от 30 до 120 минут.</p>
+
+      <h2>Параметры доступа к Ozon Seller API</h2>
+      <p>
+        Чтобы расширение обновляло цены в фоне, укажите учётные данные
+        <strong>Client ID</strong> и <strong>API Key</strong>, созданные в кабинете продавца Ozon.
+        Запросы выполняются напрямую к <code>https://api-seller.ozon.ru</code>.
+      </p>
+      <label for="client-id">Client ID</label>
+      <input id="client-id" type="text" autocomplete="off" spellcheck="false" />
+      <label for="api-key">API Key</label>
+      <input id="api-key" type="password" autocomplete="off" spellcheck="false" />
+      <p class="hint">
+        Советуем создать отдельный ключ только для чтения цен и хранить его в безопасности. Ключ сохраняется локально в браузере.
+      </p>
+      <button id="save">Сохранить</button>
+      <div id="toast" class="toast" hidden>Настройки сохранены.</div>
+    </div>
+    <script src="options.js"></script>
+  </body>
+</html>

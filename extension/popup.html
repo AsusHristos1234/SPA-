@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Ozon Price Tracker</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main class="popup">
+      <header class="popup__header">
+        <h1>Отслеживаемые товары</h1>
+        <button id="open-options" title="Настройки"></button>
+      </header>
+      <section id="product-list" class="popup__list"></section>
+      <footer class="popup__footer">
+        <button id="open-tracker" class="popup__footer-button popup__footer-button--secondary">
+          Открыть страницу списка
+        </button>
+        <button id="refresh" class="popup__footer-button popup__footer-button--primary">Обновить цены</button>
+      </footer>
+    </main>
+    <template id="product-template">
+      <article class="product-card product-card--collapsed">
+        <button
+          class="product-card__toggle"
+          type="button"
+          aria-expanded="false"
+          title="Показать подробности"
+        ></button>
+        <img class="product-card__image" alt="" />
+        <div class="product-card__content">
+          <h2 class="product-card__title"></h2>
+          <div class="product-card__prices">
+            <p class="product-card__baseline"></p>
+            <p class="product-card__price"></p>
+          </div>
+          <p class="product-card__stats"></p>
+          <div class="product-card__chart">
+            <svg
+              class="product-card__chart-graph"
+              viewBox="0 0 200 60"
+              preserveAspectRatio="none"
+              aria-hidden="true"
+            ></svg>
+            <p class="product-card__chart-caption"></p>
+          </div>
+          <div class="product-card__threshold">
+            <label class="product-card__threshold-label">
+              Порог уведомления (₽)
+              <input type="number" class="product-card__threshold-input" min="0" step="1" placeholder="Например, 1200" />
+            </label>
+            <p class="product-card__threshold-status"></p>
+          </div>
+          <div class="product-card__actions">
+            <a class="product-card__link" target="_blank" rel="noopener noreferrer">Открыть</a>
+            <button class="product-card__remove">Удалить</button>
+          </div>
+        </div>
+      </article>
+    </template>
+    <script src="viewHelpers.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>
